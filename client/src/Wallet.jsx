@@ -20,7 +20,7 @@ function Wallet({
       setAddress(publicKey);
       const {
         data: { balance },
-      } = await server.get(`balance/${address}`);
+      } = await server.get(`balance/${publicKey}`);
       setBalance(balance);
     } else {
       setBalance(0);
