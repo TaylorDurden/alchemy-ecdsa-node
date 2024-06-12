@@ -1,5 +1,5 @@
 const { secp256k1 } = require('ethereum-cryptography/secp256k1.js');
-const { utf8ToBytes, toHex } = require('ethereum-cryptography/utils.js');
+const { toHex } = require('ethereum-cryptography/utils.js');
 
 const privateKey1 = toHex(secp256k1.utils.randomPrivateKey());
 const privateKey2 = toHex(secp256k1.utils.randomPrivateKey());

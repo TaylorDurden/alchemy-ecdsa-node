@@ -1,15 +1,18 @@
-const express = require('express');
+import * as secp from '@noble/secp256k1';
+import { utf8ToBytes, toHex } from 'ethereum-cryptography/utils.js';
+import { keccak256 } from 'ethereum-cryptography/keccak.js';
+import express from 'express';
+import cors from 'cors';
 const app = express();
-const cors = require('cors');
 const port = 3042;
 
 app.use(cors());
 app.use(express.json());
 
 const balances = {
-  ad5e954160d32f3c9f49: 100,
-  '187ad4cf4834752d4a91': 50,
-  '8f878d90579269f19d5c': 75,
+  '156d35cd47645f32b9b3': 100,
+  '16a9fa5e0835c8429852': 50,
+  '28d058ef9e61af6c5435': 75,
 };
 
 app.get('/balance/:address', (req, res) => {
@@ -19,17 +22,29 @@ app.get('/balance/:address', (req, res) => {
 });
 
 app.post('/send', (req, res) => {
-  const { sender, recipient, amount } = req.body;
+  const { signature, recovery, hashMsg, recipient, amount } = req.body;
 
-  setInitialBalance(sender);
+  let sig = secp.Signature.fromCompact(signature);
+  sig = sig.addRecoveryBit(recovery);
+  console.log(`sig recovery: ${sig.recovery}`);
+  console.log(`sig r: ${sig.r.toString()}`);
+  console.log(`sig s: ${sig.s.toString()}`);
+
+  console.log(`signature: ${sig}`);
+
+  const rawPublicKey = sig.recoverPublicKey(hashMsg);
+  // console.log(`rawPublicKey: ${JSON.stringify(rawPublicKey)}`);
+  const publicKey = rawPublicKey.toHex().slice(-20);
+  console.log(`publicKey: ${publicKey}`);
+  setInitialBalance(publicKey);
   setInitialBalance(recipient);
 
-  if (balances[sender] < amount) {
+  if (balances[publicKey] < amount) {
     res.status(400).send({ message: 'Not enough funds!' });
   } else {
-    balances[sender] -= amount;
+    balances[publicKey] -= amount;
     balances[recipient] += amount;
-    res.send({ balance: balances[sender] });
+    res.send({ balance: balances[publicKey] });
   }
 });
 
@@ -42,3 +57,7 @@ function setInitialBalance(address) {
     balances[address] = 0;
   }
 }
+
+const hashMessage = (message) => {
+  return keccak256(utf8ToBytes(message));
+};
