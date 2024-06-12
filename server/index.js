@@ -33,7 +33,6 @@ app.post('/send', (req, res) => {
   console.log(`signature: ${sig}`);
 
   const rawPublicKey = sig.recoverPublicKey(hashMsg);
-  // console.log(`rawPublicKey: ${JSON.stringify(rawPublicKey)}`);
   const publicKey = rawPublicKey.toHex().slice(-20);
   console.log(`publicKey: ${publicKey}`);
   setInitialBalance(publicKey);
